@@ -9,6 +9,8 @@ import {
   firestoreDb,
 } from "../components/config/firebase.config";
 import { doc, getDoc } from "firebase/firestore";
+import { useDispatch } from "react-redux";
+import { SET_USER } from "../context/actions/userActions";
 
 const LoginScreen = () => {
   const screenWidth = Math.round(Dimensions.get("window").width);
@@ -18,6 +20,8 @@ const LoginScreen = () => {
     useState(false);
   const [alert, setalert] = useState(false);
   const [alertMessage, setalertMessage] = useState("");
+
+  const dispatch = useDispatch();
 
   const handleLogin = async () => {
     if (getEmailValidationStatus && email !== "") {
@@ -29,13 +33,30 @@ const LoginScreen = () => {
               (docSnap) => {
                 if (docSnap.exists()) {
                   console.log("user data: ", docSnap.data());
+                  dispatch(SET_USER(docSnap.data()));
+                } else {
+                  setalert(true);
+                  setalertMessage("User not found");
+                  setInterval(() => {
+                    setalert(false);
+                  }, 2000);
                 }
               }
             );
           }
         })
         .catch((err) => {
-          // console.log("error: ", err.message);
+          console.log("error: ", err.message);
+          if (err.message.includes("invalid-credential")) {
+            setalert(true);
+            setalertMessage("Wrong password!");
+          } else {
+            setalert(true);
+            setalertMessage("Invalid Email Address!");
+          }
+          setInterval(() => {
+            setalert(false);
+          }, 2000);
         });
     } else {
       alert("Please enter valid email");

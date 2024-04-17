@@ -16,9 +16,18 @@ const SignUpScreen = () => {
   const [email, setemail] = useState("");
   const [password, setpassword] = useState("");
   const [name, setname] = useState("");
-  const [avatarName, setavatarName] = useState("");
   const [getEmailValidationStatus, setGetEmailValidationStatus] =
     useState(false);
+
+  const generateAvatar = (fullName) => {
+    // Generate an avatar based on the full name
+    // You can use a library like react-native-user-avatar for this
+    const initials = fullName
+      .split(" ")
+      .map((word) => word[0])
+      .join("");
+    return <UserAvatar size={50} name={initials} />;
+  };
 
   const handleSignUp = async () => {
     if (getEmailValidationStatus && email !== "") {

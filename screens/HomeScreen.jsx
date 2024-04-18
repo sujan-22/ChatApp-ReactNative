@@ -44,8 +44,11 @@ const HomeScreen = () => {
       <SafeAreaView>
         <View className="w-full flex-row items-center justify-between px-4 py-2">
           <Image source={Logo} className="w-12 h-12" resizeMode="contain" />
-          <TouchableOpacity className="w-12 h-12 rounded-full  flex items-center justify-center">
-            <UserAvatar size={50} name={user?.fullName} bgColor="#000" />
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ProfileScreen")}
+            className="w-12 h-12 rounded-full  flex items-center justify-center"
+          >
+            <UserAvatar size={50} name={user?.fullName} />
           </TouchableOpacity>
         </View>
         {/* scroll view for messages */}
@@ -54,7 +57,7 @@ const HomeScreen = () => {
             {/* message title */}
             <View className="w-full flex-row items-center justify-between px-2">
               <Text className="text-base text-primaryText font-extrabold">
-                Messages
+                MESSAGES
               </Text>
               <TouchableOpacity
                 onPress={() => navigation.navigate("AddToChatScreen")}
@@ -108,7 +111,7 @@ const MessageBody = ({ room }) => {
         if (!querySnapShot.empty) {
           const latestMsg = querySnapShot.docs[0].data();
           setLatestMessage(latestMsg.message);
-          setSenderName(latestMsg.user.fullName);
+          setSenderName(latestMsg.user?.fullName);
           const timeStamp = latestMsg.timeStamp;
           if (timeStamp) {
             setLastMessageTime(timeStamp.toDate()); // Convert Firebase timestamp to Date object
@@ -144,8 +147,8 @@ const MessageBody = ({ room }) => {
       className="w-full flex-row items-center justify-start py-2"
     >
       {/* profile */}
-      <View className="w-16 h-16 rounded-full flex items-center border-2 border-primary p-1 justify-center">
-        <FontAwesome5 name="users" size={24} color="black" />
+      <View>
+        <UserAvatar name={room.chatName} size={45} />
       </View>
 
       {/* content */}
@@ -158,7 +161,9 @@ const MessageBody = ({ room }) => {
             <Text style={{ fontWeight: "bold" }}>
               {senderName === user.fullName ? "You" : senderName}:{" "}
             </Text>
-            {latestMessage}
+            {latestMessage.length > 15
+              ? latestMessage.slice(0, 15)
+              : latestMessage}
           </Text>
         ) : (
           <Text className="text-primaryText text-sm">No messages yet</Text>

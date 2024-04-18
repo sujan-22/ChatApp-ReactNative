@@ -39,15 +39,15 @@ const UserInput = ({
 
   return (
     <View
-      className={`border rounded-2xl px-8 py-4 flex-row items-center justify-between space-x-4 my-2 ${
+      className={`border rounded-full px-8 py-4 flex-row items-center justify-between space-x-4 my-2 ${
         !isEmailValid && placeholder == "Email" && value.length > 0
           ? "border-red-500"
           : "border-gray-200"
       }`}
     >
-      <MaterialIcons name={icon} size={24} color={"#6c6d83"} />
+      <MaterialIcons name={icon} size={24} color={"gray"} />
       <TextInput
-        className="flex-1 text-base text-primaryText font-semibold -mt-1"
+        className="flex-1 items-center text-base text-primaryText font-semibold -mt-2"
         placeholder={placeholder}
         value={value}
         onChangeText={handleChange}
@@ -59,7 +59,7 @@ const UserInput = ({
           <Entypo
             name={`${showPass ? "eye" : "eye-with-line"}`}
             size={24}
-            color={"#6c6d83"}
+            color={"gray"}
           />
         </TouchableOpacity>
       )}

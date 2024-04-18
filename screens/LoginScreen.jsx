@@ -28,11 +28,9 @@ const LoginScreen = () => {
       await signInWithEmailAndPassword(firebaseAuth, email, password)
         .then((userCred) => {
           if (userCred) {
-            console.log("user id: ", userCred?.user.uid);
             getDoc(doc(firestoreDb, "users", userCred?.user.uid)).then(
               (docSnap) => {
                 if (docSnap.exists()) {
-                  console.log("user data: ", docSnap.data());
                   dispatch(SET_USER(docSnap.data()));
                 } else {
                   setalert(true);
@@ -84,7 +82,7 @@ const LoginScreen = () => {
         space-y-6"
       >
         <Text className="py-2 text-primaryText text-xl font-semibold">
-          Welcome Back!
+          GOOD TO SEE YOU BACK!
         </Text>
         <View className="w-full flex items-center justify-center">
           {/* alert */}
@@ -110,21 +108,21 @@ const LoginScreen = () => {
           {/* login button */}
           <TouchableOpacity
             onPress={handleLogin}
-            className="w-full px-4 py-2 rounded-xl bg-primary my-3 flex items-center justify-center"
+            className="w-full px-4 py-2 rounded-full bg-gray-500 my-3 flex items-center justify-center"
           >
             <Text className="py-2 text-white text-xl font-semibold">
-              Sign In
+              SIGN IN
             </Text>
           </TouchableOpacity>
           <View className="w-full py-12 flex-row items-center justify-center space-x-2">
             <Text className="text-base text-primaryText">
-              Don't have an account?
+              DON'T HAVE AN ACCOUNT?
             </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate("SignUpScreen")}
             >
               <Text className="text-base text-primaryText text-primaryBold">
-                Sign Up
+                SIGN UP
               </Text>
             </TouchableOpacity>
           </View>

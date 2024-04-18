@@ -68,7 +68,7 @@ const SignUpScreen = () => {
             space-y-6"
       >
         <Text className="py-2 text-primaryText text-xl font-semibold">
-          Join with us!
+          JOIN WITH US!!
         </Text>
 
         <View className="w-full flex items-center justify-center">
@@ -97,21 +97,21 @@ const SignUpScreen = () => {
           {/* login button */}
           <TouchableOpacity
             onPress={handleSignUp}
-            className="w-full px-4 py-2 rounded-xl bg-primary my-3 flex items-center justify-center"
+            className="w-full px-4 py-2 rounded-full bg-gray-500 my-3 flex items-center justify-center"
           >
             <Text className="py-2 text-white text-xl font-semibold">
-              Sign Up
+              SIGN UP
             </Text>
           </TouchableOpacity>
           <View className="w-full py-12 flex-row items-center justify-center space-x-2">
             <Text className="text-base text-primaryText">
-              Already have an account?
+              ALREADY HAVE AN ACCOUNT?
             </Text>
             <TouchableOpacity
               onPress={() => navigation.navigate("LoginScreen")}
             >
               <Text className="text-base text-primaryText text-primaryBold">
-                Sign In
+                SIGN IN
               </Text>
             </TouchableOpacity>
           </View>

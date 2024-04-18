@@ -36,11 +36,11 @@ const AddToChatScreen = () => {
 
   return (
     <View className="flex-1">
-      <View className="w-full bg-primary px-4 py-6 flex-[0.25]">
+      <View className="w-full bg-gray-200 px-4 py-6 flex-[0.2]">
         <View className="flex-row items-center justify-between w-full px-4 py-12">
           {/* go back */}
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <MaterialIcons name="chevron-left" size={32} color={"white"} />
+            <MaterialIcons name="chevron-left" size={32} color={"black"} />
           </TouchableOpacity>
           {/* middle */}
 
@@ -52,15 +52,15 @@ const AddToChatScreen = () => {
       </View>
 
       {/* chat section */}
-      <View className="w-full bg-white px-4 py-6 rounded-3xl flex-1 rounded-t-[50px] -mt-10">
+      <View className="w-full bg-white px-4 py-6 flex-1 -mt-10">
         <View className="w-full px-4 py-4">
-          <View className="w-full px-4 flex-row items-center justify-between py-3 rounded-xl border border-gray-300 space-x-3">
+          <View className="w-full px-4 flex-row items-center justify-between py-3 rounded-full border border-gray-300 space-x-3">
             {/* icon */}
             <Ionicons name="chatbubbles" size={24} color={"gray"} />
 
             {/* text */}
             <TextInput
-              className="flex-1 text-lg text-primaryText h-10 w-full"
+              className="flex-1 text-lg text-primaryText h-10 w-full relative bottom-1"
               placeholder="Create a chat"
               placeholderTextColor={"gray"}
               value={addChat}

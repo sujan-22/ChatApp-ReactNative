@@ -8,7 +8,9 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import React, { useLayoutEffect, useState } from "react";
+import React, { useLayoutEffect, useState, useRef } from "react";
+import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
 import UserAvatar from "react-native-user-avatar";
 import {
   Entypo,
@@ -31,6 +33,7 @@ import { firestoreDb } from "../components/config/firebase.config";
 
 const ChatScreen = ({ route }) => {
   const { room } = route.params;
+  const scrollViewRef = useRef();
   const user = useSelector((state) => state.user.user);
   const [isLoading, setisLoading] = useState(true);
   const [message, setmessage] = useState("");
@@ -38,7 +41,10 @@ const ChatScreen = ({ route }) => {
 
   const navigation = useNavigation();
 
-  const sendMessage = async () => {
+  const sendMessage = async (message) => {
+    if (message === "") {
+      return;
+    }
     const timeStamp = serverTimestamp();
     const id = `${Date.now()}`;
     const _doc = {
@@ -61,6 +67,28 @@ const ChatScreen = ({ route }) => {
       });
   };
 
+  const sendAltitude = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status === "granted") {
+        const location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
+        if (latitude && longitude) {
+          const altitudeMessage = `altitude:${latitude},longitude:${longitude}`;
+          await sendMessage(altitudeMessage);
+        }
+      }
+    } catch (error) {
+      console.error("Error getting altitude:", error);
+    }
+  };
+
+  const scrollToBottom = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  };
+
   useLayoutEffect(() => {
     const msgQuery = query(
       collection(firestoreDb, "chats", room?._id, "messages"),
@@ -71,49 +99,82 @@ const ChatScreen = ({ route }) => {
       const messages = querySnapShot.docs.map((doc) => doc.data());
       setMessages(messages);
       setisLoading(false);
+      scrollToBottom();
     });
 
     return unsubscribe;
   }, []);
 
+  const renderMessage = (msg, i) => {
+    let altitude;
+    let longitude;
+
+    const [altitudePart, longitudePart] = msg.message.split(",");
+    altitude = altitudePart.split(":")[1];
+    longitude = longitudePart.split(":")[1];
+
+    return (
+      <MapView
+        key={i}
+        style={{
+          width: 250,
+          height: 200,
+          borderRadius: 20,
+          alignSelf: "flex-end",
+          marginVertical: 5,
+        }}
+        mapType="standard"
+        initialRegion={{
+          latitude: altitude,
+          longitude: longitude,
+          latitudeDelta: 0.1,
+          longitudeDelta: 0.1,
+        }}
+      >
+        <Marker coordinate={{ latitude: altitude, longitude: longitude }} />
+      </MapView>
+    );
+  };
+
   return (
     <View className="flex-1">
-      <View className="w-full bg-primary px-4 py-6 flex-[0.24]">
+      <View className="w-full bg-gray-200 px-4 py-6 flex-[0.2]">
         <View className="flex-row items-center justify-between w-full px-4 py-5">
           {/* go back */}
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <MaterialIcons name="chevron-left" size={32} color={"white"} />
+            <MaterialIcons name="chevron-left" size={30} color={"black"} />
           </TouchableOpacity>
 
           {/* middle */}
-          <View className="flex-row items-center justify-end space-x-3">
-            <View className="w-14 h-14 rounded-full border border-black flex items-center justify-center p-2">
-              <FontAwesome5 name="users" size={32} color={"black"} />
+          <View className="flex-column items-center justify-center">
+            <View className="flex items-center justify-center p-2">
+              <UserAvatar name={room.chatName} size={45} />
             </View>
             <View>
-              <Text className="text-black-50 text-base font-extrabold capitalize">
+              <Text className="text-black-50 text-base font-semibold capitalize">
                 {room.chatName.length > 15
                   ? `${room.chatName.slice(0, 15)}...`
                   : room.chatName}
               </Text>
-              <Text className="text-black-100 text-sm font-semibold capitalize">
-                Online
-              </Text>
             </View>
           </View>
 
-          <View className="flex-row items-center justify-center space-x-3"></View>
+          <View className="flex-row items-center justify-center mx-3"></View>
         </View>
       </View>
 
-      <View className="w-full bg-white px-4 py-6 rounded-3xl flex-1 rounded-t-[50px] -mt-10">
+      <View className="w-full bg-white px-4 pb-5 flex-1 -mt-10">
         <KeyboardAvoidingView
           className="flex-1"
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={160}
         >
           <>
-            <ScrollView>
+            <ScrollView
+              showsVerticalScrollIndicator="false"
+              ref={scrollViewRef}
+              onContentSizeChange={() => scrollToBottom()}
+            >
               {isLoading ? (
                 <>
                   <View className="w-full flex items-center justify-center">
@@ -126,26 +187,32 @@ const ChatScreen = ({ route }) => {
                   {messages?.map((msg, i) =>
                     msg.user.providerData.email === user.providerData.email ? (
                       <View className="m-1" key={i}>
-                        <View
-                          style={{ alignSelf: "flex-end" }}
-                          className="px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl bg-primary w-auto relative"
-                        >
-                          <Text className="text-base font-semibold text-white">
-                            {msg.message}
-                          </Text>
-                        </View>
-                        <View style={{ alignSelf: "flex-end" }}>
-                          {msg?.timeStamp?.seconds && (
-                            <Text className="text-xs text-black font-semibold">
-                              {new Date(
-                                msg.timeStamp.seconds * 1000
-                              ).toLocaleTimeString("en-US", {
-                                hour: "numeric",
-                                minute: "numeric",
-                              })}
+                        {msg.message.startsWith("altitude:") ? (
+                          renderMessage(msg, i)
+                        ) : (
+                          <View
+                            style={{ alignSelf: "flex-end" }}
+                            className="px-4 py-2 rounded-tl-xl rounded-tr-xl rounded-bl-2xl bg-gray-400 w-auto relative"
+                          >
+                            <Text className="text-base font-semibold text-white">
+                              {msg.message}
                             </Text>
-                          )}
-                        </View>
+                          </View>
+                        )}
+                        <>
+                          <View style={{ alignSelf: "flex-end" }}>
+                            {msg?.timeStamp?.seconds && (
+                              <Text className="text-xs text-black font-semibold">
+                                {new Date(
+                                  msg.timeStamp.seconds * 1000
+                                ).toLocaleTimeString("en-US", {
+                                  hour: "numeric",
+                                  minute: "numeric",
+                                })}
+                              </Text>
+                            )}
+                          </View>
+                        </>
                       </View>
                     ) : (
                       <View
@@ -157,14 +224,18 @@ const ChatScreen = ({ route }) => {
                           <View className="w-12 h-12 rounded-full  flex items-center justify-center">
                             <UserAvatar name={msg?.user?.fullName} />
                           </View>
-
                           {/* text message */}
                           <View className="m-1">
-                            <View className="px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-br-2xl bg-gray-300 w-auto relative">
-                              <Text className="text-base font-semibold text-black">
-                                {msg.message}
-                              </Text>
-                            </View>
+                            {msg.message.startsWith("altitude:") ? (
+                              <>{renderMessage(msg, i)}</>
+                            ) : (
+                              <View className="px-4 py-2 rounded-tl-2xl rounded-tr-2xl rounded-br-2xl bg-blue-300 w-auto relative">
+                                <Text className="text-base font-semibold text-black">
+                                  {msg.message}
+                                </Text>
+                              </View>
+                            )}
+
                             <View style={{ alignSelf: "flex-start" }}>
                               {msg?.timeStamp?.seconds && (
                                 <Text className="text-xs text-black font-semibold">
@@ -192,19 +263,22 @@ const ChatScreen = ({ route }) => {
                 </TouchableOpacity>
 
                 <TextInput
-                  className=" w-9/12 text-base text-primaryText font-semibold"
+                  className=" w-9/12 text-base relative bottom-1 h-8 text-primaryText font-semibold"
                   placeholder="Say something..."
                   placeholderTextColor={"gray"}
                   value={message}
                   onChangeText={(text) => setmessage(text)}
                 ></TextInput>
 
-                <TouchableOpacity>
-                  <Entypo name="camera" size={24} color="gray" />
+                <TouchableOpacity onPress={sendAltitude}>
+                  <FontAwesome name="map-marker" size={24} color="gray" />
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity onPress={sendMessage} className="pl-4">
+              <TouchableOpacity
+                onPress={() => sendMessage(message)}
+                className="pl-4"
+              >
                 <FontAwesome name="send" size={24} color="gray" />
               </TouchableOpacity>
             </View>

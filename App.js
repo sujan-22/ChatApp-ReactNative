@@ -10,6 +10,7 @@ import {
   SplashScreen,
   AddToChatScreen,
   ChatScreen,
+  ProfileScreen,
 } from "./screens";
 import Store from "./context/store";
 
@@ -26,6 +27,7 @@ const App = () => {
           <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="AddToChatScreen" component={AddToChatScreen} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
+          <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
         </Stack.Navigator>
       </Provider>
     </NavigationContainer>
